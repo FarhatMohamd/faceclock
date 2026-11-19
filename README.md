@@ -24,19 +24,20 @@ Several buildings, several directions, breaks, camera failures, server outages: 
 1. [Why FaceClock](#why-faceclock)
 2. [Features](#features)
 3. [Screenshots](#screenshots)
-4. [Quick start](#quick-start)
-5. [How a punch works](#how-a-punch-works)
-6. [Breaks: paid vs unpaid](#breaks-paid-vs-unpaid)
-7. [When IT fails](#when-it-fails)
-8. [Multi-building & multi-direction](#multi-building--multi-direction)
-9. [Architecture](#architecture)
-10. [Configuration](#configuration)
-11. [Privacy & legal compliance (GDPR)](#privacy--legal-compliance-gdpr)
-12. [Security](#security)
-13. [Tests](#tests)
-14. [Deployment](#deployment)
-15. [Roadmap](#roadmap)
-16. [Author & licence](#author--licence)
+4. [Windows desktop app](#windows-desktop-app-no-command-line)
+5. [Quick start (developers)](#quick-start-developers)
+6. [How a punch works](#how-a-punch-works)
+7. [Breaks: paid vs unpaid](#breaks-paid-vs-unpaid)
+8. [When IT fails](#when-it-fails)
+9. [Multi-building & multi-direction](#multi-building--multi-direction)
+10. [Architecture](#architecture)
+11. [Configuration](#configuration)
+12. [Privacy & legal compliance (GDPR)](#privacy--legal-compliance-gdpr)
+13. [Security](#security)
+14. [Tests](#tests)
+15. [Deployment](#deployment)
+16. [Roadmap](#roadmap)
+17. [Author & licence](#author--licence)
 
 ---
 
@@ -74,7 +75,22 @@ anybody when the technology fails.
 |---|---|
 | ![Kiosk confirm](docs/screenshots/kiosk-confirm.png) | ![Kiosk PIN](docs/screenshots/kiosk-pin.png) |
 
-## Quick start
+## Windows desktop app (no command line)
+
+1. Download **`FaceClock-Setup-x.y.z.exe`** from the [latest release](https://github.com/FarhatMohamd/faceclock/releases/latest).
+2. Run it (no administrator rights needed). Windows SmartScreen may warn about an unsigned program: click **More info → Run anyway**.
+3. Start **FaceClock** from the desktop icon. On the first start a wizard asks for your building name and creates your administrator account.
+4. The FaceClock window then gives one-click access to:
+   * **Punch terminal (camera)**: the kiosk of this computer, created automatically; allow the camera once.
+   * **Back-office**: employees, face enrolment, timesheets, review queue.
+   * **Employee portal** and the **data folder** (`%APPDATA%\FaceClock`: database, settings, log).
+
+Face models are included, nothing is downloaded. FaceClock runs only on this computer (`127.0.0.1`); uninstalling keeps your data.
+A portable version (`FaceClock-Portable-x.y.z.zip`, unzip and run `FaceClock.exe`) is attached to each release as well.
+
+To build it yourself on Windows: `pip install -r requirements.txt pyinstaller`, `python scripts/download_models.py`, `pyinstaller packaging/faceclock.spec`, then compile `packaging/installer.iss` with Inno Setup 6.
+
+## Quick start (developers)
 
 ```bash
 git clone https://github.com/FarhatMohamd/faceclock.git
