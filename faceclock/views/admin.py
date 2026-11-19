@@ -374,7 +374,7 @@ def timesheet_detail(emp_id):
 def timesheets_export():
     start, end = _period()
     out = io.StringIO()
-    out.write("﻿")                     # UTF-8 BOM so that Excel opens accents correctly
+    out.write("\ufeff")                     # UTF-8 BOM so that Excel opens accents correctly
     w = csv.writer(out, delimiter=";")
     w.writerow(["employee_code", "last_name", "first_name", "department", "day", "first_in",
                 "last_out", "presence_min", "worked_min", "paid_break_min", "unpaid_break_min",

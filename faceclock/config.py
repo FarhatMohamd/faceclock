@@ -25,6 +25,8 @@ def _env(name, default, cast=str):
 
 class Config:
     # --- Core -----------------------------------------------------------
+    # Must be set in production (shared by all workers, survives restarts)
+    SECRET_KEY_FROM_ENV = _env("SECRET_KEY", None) is not None
     SECRET_KEY = _env("SECRET_KEY", None) or secrets.token_hex(32)
     DATABASE = _env("DATABASE", str(BASE_DIR / "instance" / "faceclock.db"))
     MAX_CONTENT_LENGTH = 8 * 1024 * 1024          # max upload (3 webcam frames)

@@ -21,6 +21,9 @@ def create_app(config_object=Config, **overrides):
     app.config.from_object(config_object)
     app.config.update(overrides)
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
+    if not app.config.get("SECRET_KEY_FROM_ENV") and not app.config.get("TESTING"):
+        app.logger.warning("FACECLOCK_SECRET_KEY is not set: a random key is used, sessions and "
+                           "kiosk tickets will not survive a restart or work across workers.")
 
     # --- Database -----------------------------------------------------------
     db.init_app(app)

@@ -1,0 +1,12 @@
+services:
+  faceclock:
+    build: .
+    ports:
+      - "8000:8000"
+    env_file: .env
+    volumes:
+      - faceclock-data:/data
+    restart: unless-stopped
+
+volumes:
+  faceclock-data:
