@@ -99,6 +99,9 @@ def _int_or_none(value):
 # ---------------------------------------------------------------------------
 @bp.route("/login", methods=["GET", "POST"])
 def login():
+    from .setup import setup_needed
+    if setup_needed():                       # first start: no account yet
+        return redirect(url_for("setup.first_run"))
     if request.method == "POST":
         user = authenticate_user(request.form.get("username", ""), request.form.get("password", ""))
         if user:

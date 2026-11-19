@@ -13,7 +13,7 @@ from .config import Config
 from .face import FaceGallery, create_engine
 from .security import check_csrf, csrf_token, current_user
 
-__version__ = "1.0.0"
+__version__ = "1.1.0"
 
 
 def create_app(config_object=Config, **overrides):
@@ -40,11 +40,13 @@ def create_app(config_object=Config, **overrides):
     from .views.admin import bp as admin_bp
     from .views.kiosk import bp as kiosk_bp
     from .views.portal import bp as portal_bp
+    from .views.setup import bp as setup_bp
 
     app.register_blueprint(kiosk_api)
     app.register_blueprint(kiosk_bp)
     app.register_blueprint(admin_bp)
     app.register_blueprint(portal_bp)
+    app.register_blueprint(setup_bp)
 
     # --- CLI commands -------------------------------------------------------
     from .cli import register_cli
@@ -54,7 +56,7 @@ def create_app(config_object=Config, **overrides):
     @app.before_request
     def _csrf():
         from flask import request
-        if request.blueprint in ("admin", "portal"):
+        if request.blueprint in ("admin", "portal", "setup"):
             check_csrf()
 
     @app.after_request
@@ -75,7 +77,8 @@ def create_app(config_object=Config, **overrides):
 
     @app.get("/")
     def index():
-        return redirect(url_for("admin.dashboard"))
+        from .views.setup import setup_needed
+        return redirect(url_for("setup.first_run") if setup_needed() else url_for("admin.dashboard"))
 
     @app.get("/health")
     def health():

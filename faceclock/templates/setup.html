@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Welcome · FaceClock</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Crect width=%2232%22 height=%2232%22 rx=%227%22 fill=%22%232453d4%22/%3E%3Ccircle cx=%2216%22 cy=%2214%22 r=%226%22 fill=%22white%22/%3E%3Cpath d=%22M6 28c2-6 18-6 20 0%22 fill=%22white%22/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="{{ url_for('static', filename='app.css') }}">
+</head>
+<body>
+<div class="login-wrap">
+  <form class="login-card" method="post" style="width:420px">
+    <h1>Face<span style="color:var(--brand)">Clock</span></h1>
+    <p class="muted">First start: create your company's first building and the administrator account.
+      Everything else (employees, other buildings, departments) is added later from the back-office.</p>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for cat, msg in messages %}<div class="flash {{ cat }}">{{ msg }}</div>{% endfor %}
+    {% endwith %}
+    <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+
+    <label>Building / site name</label>
+    <input name="site_name" required autofocus placeholder="e.g. Headquarters" value="{{ form.get('site_name', '') }}">
+    <label>Time zone</label>
+    <input name="timezone" value="{{ form.get('timezone', 'Europe/Paris') }}">
+
+    <label>Administrator username</label>
+    <input name="username" required minlength="3" autocomplete="username" value="{{ form.get('username', '') }}">
+    <label>Password (8 characters minimum)</label>
+    <input name="password" type="password" required minlength="8" autocomplete="new-password">
+    <label>Confirm password</label>
+    <input name="password2" type="password" required minlength="8" autocomplete="new-password">
+
+    <button class="btn mt" style="width:100%">Create and start</button>
+  </form>
+</div>
+</body>
+</html>
