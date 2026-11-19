@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Audit{% endblock %}
+{% block content %}
+<h1>Audit log & IT incidents</h1>
+{% if chain_ok %}
+  <div class="flash ok">Audit chain verified: no entry has been modified or deleted.</div>
+{% else %}
+  <div class="flash error">Audit chain BROKEN at entry #{{ broken }} — the log has been tampered with.</div>
+{% endif %}
+
+<div class="grid cols-2">
+  <div class="card">
+    <h2>Audit trail (latest 300)</h2>
+    <table>
+      <tr><th>#</th><th>Time (UTC)</th><th>Actor</th><th>Action</th><th>Entity</th></tr>
+      {% for a in entries %}
+      <tr title="{{ a.details }}"><td class="muted">{{ a.id }}</td><td class="muted">{{ a.ts }}</td><td>{{ a.actor }}</td>
+        <td><span class="badge info">{{ a.action }}</span></td><td>{{ a.entity or '' }} {{ a.entity_id or '' }}</td></tr>
+      {% endfor %}
+    </table>
+  </div>
+  <div class="card">
+    <h2>IT incidents</h2>
+    <table>
+      <tr><th>Time (UTC)</th><th>Kiosk</th><th>Kind</th><th>Details</th></tr>
+      {% for i in incidents %}
+      <tr><td class="muted">{{ i.ts }}</td><td>{{ i.kiosk or '—' }}<br><span class="muted">{{ i.site or '' }}</span></td>
+        <td><span class="badge warn">{{ i.kind }}</span></td><td class="muted">{{ i.details }}</td></tr>
+      {% else %}<tr><td colspan="4" class="muted">No incident.</td></tr>{% endfor %}
+    </table>
+  </div>
+</div>
+{% endblock %}

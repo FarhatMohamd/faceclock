@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Timesheets{% endblock %}
+{% block content %}
+<h1>Timesheets</h1>
+<form class="inline card" method="get">
+  <div><label>From</label><input type="date" name="from" value="{{ start }}"></div>
+  <div><label>To</label><input type="date" name="to" value="{{ end }}"></div>
+  <div><label>Department</label>
+    <select name="department_id"><option value="">All visible</option>
+      {% for d in departments %}<option value="{{ d.id }}" {{ 'selected' if request.args.department_id == d.id|string }}>{{ d.code }} · {{ d.name }}</option>{% endfor %}
+    </select></div>
+  <div class="shrink"><button class="btn">Show</button></div>
+  <div class="shrink"><a class="btn secondary" href="{{ url_for('admin.timesheets_export', **request.args) }}">Export CSV</a></div>
+</form>
+
+<div class="card mt">
+  <table>
+    <tr><th>Employee</th><th>Department</th><th class="num">Worked</th><th class="num">Expected</th>
+        <th class="num">Paid breaks</th><th class="num">Unpaid breaks</th><th class="num">Late</th>
+        <th class="num">Overtime</th><th class="num">PIN / offline</th><th class="num">Anomalies</th></tr>
+    {% for r in rows %}{% set t = r.totals %}
+    <tr>
+      <td><a href="{{ url_for('admin.timesheet_detail', emp_id=r.emp.id, **{'from': start, 'to': end}) }}">{{ r.emp.last_name }} {{ r.emp.first_name }}</a></td>
+      <td class="muted">{{ r.emp.department or '—' }}</td>
+      <td class="num"><strong>{{ fmt_minutes(t.worked_min) }}</strong></td>
+      <td class="num">{{ fmt_minutes(t.expected_min) }}</td>
+      <td class="num">{{ fmt_minutes(t.paid_break_min) }}</td>
+      <td class="num">{{ fmt_minutes(t.unpaid_break_min) }}</td>
+      <td class="num">{{ fmt_minutes(t.late_min) }}</td>
+      <td class="num">{{ fmt_minutes(t.overtime_min) }}</td>
+      <td class="num">{{ t.pin_punches }}</td>
+      <td class="num">{% if t.anomalies %}<span class="badge warn">{{ t.anomalies }}</span>{% else %}<span class="badge ok">0</span>{% endif %}</td>
+    </tr>
+    {% else %}<tr><td colspan="10" class="muted">No employee.</td></tr>{% endfor %}
+  </table>
+</div>
+{% endblock %}

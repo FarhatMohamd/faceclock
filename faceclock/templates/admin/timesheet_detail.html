@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}Timesheet{% endblock %}
+{% macro anomaly_badges(list) %}
+  {% for a in list %}<span class="badge {{ 'bad' if a in ('MISSING_OUT', 'ABSENT') or a.startswith('ORPHAN') else 'warn' }}">{{ a }}</span>{% endfor %}
+{% endmacro %}
+{% block content %}
+<h1>{{ emp.last_name }} {{ emp.first_name }} <span class="muted">· {{ emp.employee_code }}</span></h1>
+<form class="inline card" method="get">
+  <div><label>From</label><input type="date" name="from" value="{{ start }}"></div>
+  <div><label>To</label><input type="date" name="to" value="{{ end }}"></div>
+  <div class="shrink"><button class="btn">Show</button></div>
+</form>
+
+<div class="grid cols-4 mt">
+  <div class="card stat"><div class="value">{{ fmt_minutes(totals.worked_min) }}</div><div class="label">Worked</div></div>
+  <div class="card stat"><div class="value">{{ fmt_minutes(totals.overtime_min) }}</div><div class="label">Overtime</div></div>
+  <div class="card stat"><div class="value">{{ fmt_minutes(totals.paid_break_min) }}</div><div class="label">Paid breaks (smoke, coffee…)</div></div>
+  <div class="card stat"><div class="value">{{ totals.anomalies }}</div><div class="label">Anomalies</div></div>
+</div>
+
+<div class="card mt">
+  <h2>Daily detail</h2>
+  <table>
+    <tr><th>Day</th><th>In</th><th>Out</th><th class="num">Presence</th><th class="num">Worked</th>
+        <th>Breaks</th><th class="num">Late</th><th class="num">Overtime</th><th>Anomalies</th></tr>
+    {% for d in days %}
+    <tr>
+      <td>{{ d.day.strftime('%a %d/%m') }}</td><td>{{ d.first_in or '—' }}</td><td>{{ d.last_out or '—' }}</td>
+      <td class="num">{{ fmt_minutes(d.presence_min) }}</td><td class="num"><strong>{{ fmt_minutes(d.worked_min) }}</strong></td>
+      <td>{% for code, m in d.breaks.items() %}<span class="badge">{{ code }} {{ m }}′</span>{% endfor %}</td>
+      <td class="num">{{ d.late_min or '' }}</td><td class="num">{{ fmt_minutes(d.overtime_min) if d.overtime_min else '' }}</td>
+      <td>{{ anomaly_badges(d.anomalies) }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+
+<div class="grid cols-2 mt">
+  <div class="card">
+    <h2>Raw punches</h2>
+    <table>
+      <tr><th>Time (UTC)</th><th>Action</th><th>Building</th><th>Method</th><th>Status</th></tr>
+      {% for p in punches %}
+      <tr>
+        <td class="muted">{{ p.ts }}</td>
+        <td>{{ p.punch_type }}{% if p.break_label %} · {{ p.break_label }}{% endif %}</td>
+        <td>{{ p.site or '—' }}</td>
+        <td><span class="badge {{ 'info' if p.method == 'FACE' else 'warn' }}">{{ p.method }}</span>{% if p.reason %}<span class="muted"> {{ p.reason }}</span>{% endif %}</td>
+        <td><span class="badge {{ {'VALID': 'ok', 'PENDING_REVIEW': 'warn', 'REJECTED': 'bad'}[p.status] }}">{{ p.status }}</span></td>
+      </tr>
+      {% else %}<tr><td colspan="5" class="muted">No punch in this period.</td></tr>{% endfor %}
+    </table>
+  </div>
+
+  <form class="card" method="post" action="{{ url_for('admin.punch_manual') }}">
+    <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+    <input type="hidden" name="employee_id" value="{{ emp.id }}">
+    <h2>Add a manual punch</h2>
+    <p class="muted">Recorded with method ADMIN and kept in the audit log.</p>
+    <div class="inline">
+      <div><label>Local date & time</label><input type="datetime-local" name="ts" required></div>
+      <div><label>Action</label><select name="punch_type">{% for t in punch_types %}<option>{{ t }}</option>{% endfor %}</select></div>
+    </div>
+    <div class="inline">
+      <div><label>Break type</label><select name="break_type"><option value="">—</option>{% for b in break_types %}<option value="{{ b.code }}">{{ b.label }}</option>{% endfor %}</select></div>
+      <div><label>Building</label><select name="site_id">{% for s in sites %}<option value="{{ s.id }}" {{ 'selected' if s.id == emp.home_site_id }}>{{ s.name }}</option>{% endfor %}</select></div>
+    </div>
+    <label>Justification (mandatory)</label>
+    <input name="note" required placeholder="e.g. kiosk out of order, confirmed by manager">
+    <button class="btn mt">Add punch</button>
+  </form>
+</div>
+{% endblock %}

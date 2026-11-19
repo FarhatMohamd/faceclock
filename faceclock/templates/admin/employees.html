@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Employees{% endblock %}
+{% block content %}
+<div class="inline" style="align-items:center">
+  <h1 style="margin:0">Employees</h1>
+  {% if current_user().role in ('ADMIN', 'HR') %}
+  <div class="shrink right"><a class="btn" href="{{ url_for('admin.employee_new') }}">+ New employee</a></div>
+  {% endif %}
+</div>
+<div class="card mt">
+  <input id="filter" placeholder="Search by name, code or department…" oninput="filterRows(this.value)">
+  <table id="emp-table" class="mt">
+    <tr><th>Code</th><th>Name</th><th>Department</th><th>Home building</th><th>Schedule</th><th>Face ID</th><th>Status</th><th></th></tr>
+    {% for e in employees %}
+    <tr>
+      <td>{{ e.employee_code }}</td>
+      <td><a href="{{ url_for('admin.employee_edit', emp_id=e.id) }}">{{ e.last_name }} {{ e.first_name }}</a></td>
+      <td>{{ e.department or '—' }}</td>
+      <td>{{ e.site or '—' }}</td>
+      <td class="muted">{{ e.schedule or '—' }}</td>
+      <td>
+        {% if not e.biometric_consent %}<span class="badge">No consent (PIN only)</span>
+        {% elif e.templates %}<span class="badge ok">Enrolled ({{ e.templates }})</span>
+        {% else %}<span class="badge warn">To enrol</span>{% endif %}
+      </td>
+      <td>{% if e.active %}<span class="badge ok">Active</span>{% else %}<span class="badge bad">Inactive</span>{% endif %}</td>
+      <td><a class="btn small secondary" href="{{ url_for('admin.timesheet_detail', emp_id=e.id) }}">Timesheet</a></td>
+    </tr>
+    {% endfor %}
+  </table>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+  // Client-side quick filter on the employee table
+  function filterRows(q) {
+    q = q.toLowerCase();
+    document.querySelectorAll('#emp-table tr').forEach((tr, i) => {
+      if (i === 0) return;
+      tr.style.display = tr.innerText.toLowerCase().includes(q) ? '' : 'none';
+    });
+  }
+</script>
+{% endblock %}

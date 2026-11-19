@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>My time · FaceClock</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='app.css') }}">
+</head>
+<body>
+<header class="topbar">
+  <span class="logo">Face<span>Clock</span></span>
+  <div class="user">{{ emp.first_name }} {{ emp.last_name }} · {{ emp.employee_code }} <a href="{{ url_for('portal.logout') }}">Log out</a></div>
+</header>
+<main>
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for cat, msg in messages %}<div class="flash {{ cat }}">{{ msg }}</div>{% endfor %}
+  {% endwith %}
+  <h1>My time & attendance — last 31 days</h1>
+  <div class="grid cols-4">
+    <div class="card stat"><div class="value">{{ fmt_minutes(totals.worked_min) }}</div><div class="label">Worked</div></div>
+    <div class="card stat"><div class="value">{{ fmt_minutes(totals.overtime_min) }}</div><div class="label">Overtime</div></div>
+    <div class="card stat"><div class="value">{{ fmt_minutes(totals.paid_break_min) }}</div><div class="label">Paid breaks</div></div>
+    <div class="card stat"><div class="value">{{ totals.anomalies }}</div><div class="label">Items to check</div></div>
+  </div>
+
+  <div class="grid cols-2 mt">
+    <div class="card">
+      <h2>Days</h2>
+      <table>
+        <tr><th>Day</th><th>In</th><th>Out</th><th class="num">Worked</th><th>Notes</th></tr>
+        {% for d in days if d.presence_min or d.anomalies %}
+        <tr><td>{{ d.day.strftime('%a %d/%m') }}</td><td>{{ d.first_in or '—' }}</td><td>{{ d.last_out or '—' }}</td>
+          <td class="num">{{ fmt_minutes(d.worked_min) }}</td>
+          <td>{% for a in d.anomalies %}<span class="badge warn">{{ a }}</span>{% endfor %}</td></tr>
+        {% endfor %}
+      </table>
+    </div>
+
+    <div>
+      <form class="card" method="post" action="{{ url_for('portal.request_correction') }}">
+        <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+        <h2>Request a correction</h2>
+        <div class="inline">
+          <div><label>Request</label><select name="action">
+            <option value="ADD">Add a forgotten punch</option>
+            <option value="MODIFY">Replace a wrong punch</option>
+            <option value="DELETE">Remove a wrong punch</option></select></div>
+          <div><label>Punch concerned (modify / remove)</label><select name="punch_id"><option value="">—</option>
+            {% for p in punches %}<option value="{{ p.id }}">{{ p.ts }} · {{ p.punch_type }}</option>{% endfor %}</select></div>
+        </div>
+        <div class="inline">
+          <div><label>Correct action</label><select name="punch_type">{% for t in punch_types %}<option>{{ t }}</option>{% endfor %}</select></div>
+          <div><label>Break type</label><select name="break_type"><option value="">—</option>{% for b in break_types %}<option value="{{ b.code }}">{{ b.label }}</option>{% endfor %}</select></div>
+          <div><label>Correct local time</label><input type="datetime-local" name="ts"></div>
+        </div>
+        <label>Reason</label><input name="reason" required>
+        <button class="btn mt">Send to my manager</button>
+        <table class="mt">
+          {% for r in requests %}
+          <tr><td class="muted">{{ r.created_at }}</td><td>{{ r.action }} {{ r.proposed_type or '' }}</td>
+            <td><span class="badge {{ {'PENDING': 'warn', 'APPROVED': 'ok', 'REJECTED': 'bad'}[r.status] }}">{{ r.status }}</span></td></tr>
+          {% endfor %}
+        </table>
+      </form>
+
+      <div class="card mt">
+        <h2>My personal data</h2>
+        <p>Face recognition: {% if emp.biometric_consent %}<span class="badge ok">consent given {{ emp.consent_at }}</span> · {{ templates }} numeric template(s), no photo stored.{% else %}<span class="badge">not used — code + PIN only</span>{% endif %}</p>
+        {% if emp.biometric_consent %}
+        <form method="post" action="{{ url_for('portal.withdraw_consent') }}" onsubmit="return confirm('Erase your face data? You will clock in with your code and PIN.')">
+          <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+          <button class="btn danger small">Withdraw consent & erase my face data</button>
+        </form>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <div class="card mt">
+    <h2>My latest punches</h2>
+    <table>
+      <tr><th>Time (UTC)</th><th>Action</th><th>Building</th><th>Method</th><th>Status</th></tr>
+      {% for p in punches %}
+      <tr><td class="muted">{{ p.ts }}</td><td>{{ p.punch_type }}{% if p.break_label %} · {{ p.break_label }}{% endif %}</td>
+        <td>{{ p.site or '—' }}</td><td>{{ p.method }}</td><td>{{ p.status }}</td></tr>
+      {% endfor %}
+    </table>
+  </div>
+</main>
+</body>
+</html>

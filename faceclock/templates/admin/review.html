@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}Review{% endblock %}
+{% macro decision(url) %}
+<form method="post" action="{{ url }}" style="display:flex;gap:6px">
+  <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+  {{ caller() }}
+  <button class="btn small ok" name="decision" value="approve">Approve</button>
+  <button class="btn small danger" name="decision" value="reject">Reject</button>
+</form>
+{% endmacro %}
+{% block content %}
+<h1>Review queue</h1>
+
+<div class="card">
+  <h2>Punches awaiting validation <span class="muted">(offline mode, flagged PIN punches)</span></h2>
+  <table>
+    <tr><th>Employee</th><th>Time (UTC)</th><th>Action</th><th>Building</th><th>Method</th><th>Reason</th><th></th></tr>
+    {% for p in punches %}
+    <tr>
+      <td>{{ p.last_name }} {{ p.first_name }} <span class="muted">{{ p.employee_code }}</span></td>
+      <td>{{ p.ts }}</td><td>{{ p.punch_type }}</td><td>{{ p.site or '—' }}</td>
+      <td><span class="badge warn">{{ p.method }}</span></td><td class="muted">{{ p.reason or '' }}</td>
+      <td>{% call decision(url_for('admin.punch_review', punch_id=p.id)) %}{% endcall %}</td>
+    </tr>
+    {% else %}<tr><td colspan="7" class="muted">Nothing to review.</td></tr>{% endfor %}
+  </table>
+</div>
+
+<div class="card mt">
+  <h2>Correction requests from employees</h2>
+  <table>
+    <tr><th>Employee</th><th>Request</th><th>Current punch</th><th>Proposed</th><th>Reason</th><th></th></tr>
+    {% for c in corrections %}
+    <tr>
+      <td>{{ c.last_name }} {{ c.first_name }} <span class="muted">{{ c.employee_code }}</span></td>
+      <td><span class="badge info">{{ c.action }}</span></td>
+      <td class="muted">{% if c.current_type %}{{ c.current_type }} @ {{ c.current_ts }}{% else %}—{% endif %}</td>
+      <td>{% if c.proposed_type %}{{ c.proposed_type }} @ {{ c.proposed_ts }}{% else %}—{% endif %}</td>
+      <td>{{ c.reason }}</td>
+      <td>{% call decision(url_for('admin.correction_review', req_id=c.id)) %}
+            <input name="review_note" placeholder="Note" style="width:120px">
+          {% endcall %}</td>
+    </tr>
+    {% else %}<tr><td colspan="6" class="muted">No pending request.</td></tr>{% endfor %}
+  </table>
+</div>
+{% endblock %}

@@ -1,0 +1,109 @@
+/* =====================================================================
+   FaceClock - back-office styles
+   ===================================================================== */
+:root {
+  --bg: #f4f6fa;
+  --panel: #ffffff;
+  --ink: #1b2333;
+  --muted: #667085;
+  --line: #e3e7ef;
+  --brand: #2453d4;
+  --brand-ink: #ffffff;
+  --ok: #12805c;
+  --warn: #b25e09;
+  --bad: #c0362c;
+  --radius: 10px;
+  font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font-size: 14px; }
+a { color: var(--brand); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* --- Layout -------------------------------------------------------- */
+.topbar {
+  display: flex; align-items: center; gap: 24px;
+  background: #121a2b; color: #fff; padding: 0 24px; height: 56px;
+}
+.topbar .logo { font-weight: 700; font-size: 17px; letter-spacing: .3px; color: #fff; }
+.topbar .logo span { color: #7aa2ff; }
+.topbar nav a { color: #c8d1e4; margin-right: 18px; font-weight: 500; }
+.topbar nav a.active, .topbar nav a:hover { color: #fff; text-decoration: none; }
+.topbar .user { margin-left: auto; color: #9aa6bf; font-size: 13px; }
+.topbar .user a { color: #fff; margin-left: 10px; }
+
+main { max-width: 1280px; margin: 0 auto; padding: 24px; }
+h1 { font-size: 22px; margin: 0 0 18px; }
+h2 { font-size: 16px; margin: 0 0 12px; }
+
+.grid { display: grid; gap: 16px; }
+.grid.cols-4 { grid-template-columns: repeat(4, 1fr); }
+.grid.cols-2 { grid-template-columns: 1fr 1fr; }
+.grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
+@media (max-width: 900px) { .grid.cols-4, .grid.cols-2, .grid.cols-3 { grid-template-columns: 1fr; } }
+
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px; }
+.stat .value { font-size: 30px; font-weight: 700; }
+.stat .label { color: var(--muted); font-size: 13px; }
+
+/* --- Tables -------------------------------------------------------- */
+table { width: 100%; border-collapse: collapse; }
+th, td { text-align: left; padding: 9px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { color: var(--muted); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: .4px; }
+tr:hover td { background: #fafbfd; }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+
+/* --- Badges -------------------------------------------------------- */
+.badge { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 600;
+         background: #eef1f6; color: #475467; margin: 1px 2px 1px 0; }
+.badge.ok { background: #e3f5ee; color: var(--ok); }
+.badge.warn { background: #fdf0e1; color: var(--warn); }
+.badge.bad { background: #fbe7e5; color: var(--bad); }
+.badge.info { background: #e6edff; color: var(--brand); }
+
+/* --- Forms --------------------------------------------------------- */
+label { display: block; font-weight: 600; font-size: 12px; color: var(--muted); margin: 10px 0 4px; }
+input, select, textarea {
+  width: 100%; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px;
+  font: inherit; background: #fff;
+}
+input[type=checkbox] { width: auto; }
+.inline { display: flex; gap: 10px; align-items: end; flex-wrap: wrap; }
+.inline > * { flex: 1; min-width: 130px; }
+.inline > .shrink { flex: 0; }
+
+.btn { display: inline-block; border: 0; border-radius: 8px; padding: 9px 16px; font: inherit; font-weight: 600;
+       background: var(--brand); color: var(--brand-ink); cursor: pointer; white-space: nowrap; }
+.btn:hover { filter: brightness(1.08); text-decoration: none; }
+.btn.secondary { background: #eef1f6; color: var(--ink); }
+.btn.danger { background: var(--bad); }
+.btn.ok { background: var(--ok); }
+.btn.small { padding: 5px 10px; font-size: 12px; }
+
+.flash { padding: 10px 14px; border-radius: 8px; margin-bottom: 14px; font-weight: 500; }
+.flash.ok { background: #e3f5ee; color: var(--ok); }
+.flash.error { background: #fbe7e5; color: var(--bad); }
+
+.muted { color: var(--muted); }
+.right { text-align: right; }
+.mt { margin-top: 16px; }
+.token { font-family: ui-monospace, Menlo, monospace; background: #121a2b; color: #9fe8c4;
+         padding: 10px; border-radius: 8px; word-break: break-all; }
+
+/* --- Login --------------------------------------------------------- */
+.login-wrap { min-height: 100vh; display: grid; place-items: center; background: linear-gradient(135deg, #121a2b, #24396e); }
+.login-card { width: 360px; background: #fff; border-radius: 14px; padding: 30px; box-shadow: 0 20px 60px rgba(0,0,0,.3); }
+.login-card h1 { margin-bottom: 4px; }
+
+/* --- Enrolment webcam --------------------------------------------- */
+.enroll video { width: 100%; max-width: 420px; border-radius: 10px; background: #000; }
+.thumbs { display: flex; gap: 8px; margin-top: 8px; }
+.thumbs img { width: 72px; height: 54px; object-fit: cover; border-radius: 6px; }
+
+/* --- Print (evacuation roll-call) --------------------------------- */
+@media print {
+  .topbar, .no-print, .btn { display: none !important; }
+  main { padding: 0; }
+  .card { border: 0; }
+}

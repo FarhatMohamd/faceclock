@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Edit employee' if emp else 'New employee' }}{% endblock %}
+{% block content %}
+{% set readonly = current_user().role == 'MANAGER' %}
+<h1>{{ (emp.first_name ~ ' ' ~ emp.last_name) if emp else 'New employee' }}</h1>
+
+<div class="grid cols-2">
+  <!-- ===== Identity & assignment ===== -->
+  <form class="card" method="post" action="{{ url_for('admin.employee_edit', emp_id=emp.id) if emp else url_for('admin.employee_new') }}">
+    <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+    <h2>Identity & assignment</h2>
+    <div class="inline">
+      <div><label>Employee code</label><input name="employee_code" value="{{ emp.employee_code if emp }}" {{ 'disabled' if emp else 'required' }}></div>
+      <div><label>Email</label><input name="email" type="email" value="{{ emp.email or '' if emp }}"></div>
+    </div>
+    <div class="inline">
+      <div><label>First name</label><input name="first_name" required value="{{ emp.first_name if emp }}"></div>
+      <div><label>Last name</label><input name="last_name" required value="{{ emp.last_name if emp }}"></div>
+    </div>
+    <div class="inline">
+      <div><label>Department / direction</label>
+        <select name="department_id"><option value="">—</option>
+          {% for d in departments %}<option value="{{ d.id }}" {{ 'selected' if emp and emp.department_id == d.id }}>{{ d.code }} · {{ d.name }}</option>{% endfor %}
+        </select></div>
+      <div><label>Home building</label>
+        <select name="home_site_id"><option value="">—</option>
+          {% for s in sites %}<option value="{{ s.id }}" {{ 'selected' if emp and emp.home_site_id == s.id }}>{{ s.name }}</option>{% endfor %}
+        </select></div>
+    </div>
+    <label>Work schedule</label>
+    <select name="schedule_id"><option value="">No fixed schedule</option>
+      {% for s in schedules %}<option value="{{ s.id }}" {{ 'selected' if emp and emp.schedule_id == s.id }}>{{ s.name }}</option>{% endfor %}
+    </select>
+
+    <label>Authorised buildings <span class="muted">(none ticked = all buildings)</span></label>
+    {% for s in sites %}
+      <label style="font-weight:400;color:var(--ink)"><input type="checkbox" name="site_ids" value="{{ s.id }}" {{ 'checked' if s.id in allowed_sites }}> {{ s.name }}</label>
+    {% endfor %}
+
+    {% if not emp %}
+    <label>Initial secret PIN (4–8 digits)</label>
+    <input name="pin" type="password" inputmode="numeric" required pattern="[0-9]{4,8}">
+    {% endif %}
+
+    <label style="font-weight:400;color:var(--ink)">
+      <input type="checkbox" name="biometric_consent" value="1" {{ 'checked' if emp and emp.biometric_consent }}>
+      The employee has given free, informed and written consent to face recognition
+      (otherwise they clock in with code + PIN only).
+    </label>
+    {% if emp %}
+    <label style="font-weight:400;color:var(--ink)"><input type="checkbox" name="active" value="1" {{ 'checked' if emp.active }}> Active</label>
+    {% endif %}
+    {% if not readonly %}<button class="btn mt">Save</button>{% endif %}
+  </form>
+
+  {% if emp %}
+  <div>
+    <!-- ===== Face enrolment ===== -->
+    <div class="card enroll">
+      <h2>Face ID</h2>
+      <p class="muted">{{ templates }} template(s) stored. Only numeric face signatures are kept — never photos.</p>
+      {% if not biometrics %}
+        <p class="flash error">Face engine unavailable on the server.</p>
+      {% elif not emp.biometric_consent %}
+        <p class="flash error">Consent required before enrolment.</p>
+      {% elif not readonly %}
+        <video id="enroll-video" autoplay playsinline muted></video>
+        <div class="thumbs" id="thumbs"></div>
+        <div class="inline mt">
+          <button type="button" class="btn shrink" id="start-cam">Start camera</button>
+          <button type="button" class="btn ok shrink" id="capture" disabled>Capture & enrol</button>
+        </div>
+        <p id="enroll-msg" class="muted"></p>
+      {% endif %}
+      {% if templates and not readonly %}
+      <form method="post" action="{{ url_for('admin.employee_delete_biometrics', emp_id=emp.id) }}" onsubmit="return confirm('Delete all face templates of this employee?')">
+        <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+        <button class="btn danger small mt">Delete face data</button>
+      </form>
+      {% endif %}
+    </div>
+
+    <!-- ===== PIN reset ===== -->
+    {% if not readonly %}
+    <form class="card mt" method="post" action="{{ url_for('admin.employee_reset_pin', emp_id=emp.id) }}">
+      <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+      <h2>Secret PIN</h2>
+      {% if emp.pin_locked_until %}<p class="badge bad">Locked until {{ emp.pin_locked_until }}</p>{% endif %}
+      <div class="inline">
+        <div><label>New PIN</label><input name="pin" type="password" inputmode="numeric" required pattern="[0-9]{4,8}"></div>
+        <div class="shrink"><button class="btn">Reset PIN</button></div>
+      </div>
+    </form>
+    {% endif %}
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+{% if emp %}
+<script>
+// ---- Face enrolment: capture 5 frames from the webcam and send them ----
+(function () {
+  const video = document.getElementById('enroll-video');
+  if (!video) return;
+  const msg = document.getElementById('enroll-msg');
+  const thumbs = document.getElementById('thumbs');
+  const captureBtn = document.getElementById('capture');
+
+  document.getElementById('start-cam').onclick = async () => {
+    try {
+      video.srcObject = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 } });
+      captureBtn.disabled = false;
+    } catch (e) { msg.textContent = 'Camera error: ' + e.message; }
+  };
+
+  function grab() {
+    const c = document.createElement('canvas');
+    c.width = video.videoWidth; c.height = video.videoHeight;
+    c.getContext('2d').drawImage(video, 0, 0);
+    return c.toDataURL('image/jpeg', 0.9);
+  }
+
+  captureBtn.onclick = async () => {
+    captureBtn.disabled = true; thumbs.innerHTML = '';
+    const frames = [];
+    for (let i = 0; i < 5; i++) {
+      msg.textContent = `Capturing ${i + 1}/5 — slowly turn your head a little…`;
+      const f = grab(); frames.push(f);
+      const img = new Image(); img.src = f; thumbs.appendChild(img);
+      await new Promise(r => setTimeout(r, 450));
+    }
+    msg.textContent = 'Processing…';
+    const res = await fetch("{{ url_for('admin.employee_enroll', emp_id=emp.id) }}", {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': "{{ csrf_token() }}" },
+      body: JSON.stringify({ frames })
+    });
+    const data = await res.json();
+    msg.textContent = data.ok ? `Enrolled with ${data.samples} samples. Reloading…` : data.message;
+    thumbs.innerHTML = '';                       // do not keep pictures on screen
+    if (data.ok) setTimeout(() => location.reload(), 1200); else captureBtn.disabled = false;
+  };
+})();
+</script>
+{% endif %}
+{% endblock %}

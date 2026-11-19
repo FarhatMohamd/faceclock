@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ title }} · FaceClock</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='app.css') }}">
+</head>
+<body>
+<div class="login-wrap">
+  <form class="login-card" method="post" action="{{ action }}{% if request.args.next %}?next={{ request.args.next|urlencode }}{% endif %}">
+    <h1>Face<span style="color:var(--brand)">Clock</span></h1>
+    <p class="muted">{{ title }}</p>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for cat, msg in messages %}<div class="flash {{ cat }}">{{ msg }}</div>{% endfor %}
+    {% endwith %}
+    <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+    <label>{{ user_label }}</label>
+    <input name="{{ user_name }}" autofocus required autocomplete="username">
+    <label>{{ secret_label }}</label>
+    <input name="{{ secret_name }}" type="password" required autocomplete="current-password"
+           {% if secret_name == 'pin' %}inputmode="numeric"{% endif %}>
+    <button class="btn mt" style="width:100%">Sign in</button>
+  </form>
+</div>
+</body>
+</html>

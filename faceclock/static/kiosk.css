@@ -1,0 +1,74 @@
+/* =====================================================================
+   FaceClock - kiosk (full-screen punch terminal)
+   ===================================================================== */
+:root {
+  --bg: #0d1424; --panel: #151f36; --ink: #eef2fb; --muted: #8e9bb8;
+  --brand: #4d7cff; --ok: #1fb57f; --bad: #e5534b; --warn: #f0a630;
+  font-family: "Inter", "Segoe UI", system-ui, sans-serif;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink); overflow: hidden; user-select: none; }
+.hidden { display: none !important; }
+
+/* --- Header / footer ---------------------------------------------- */
+.k-header { display: flex; align-items: center; gap: 24px; padding: 14px 28px; height: 78px; }
+.brand { font-size: 24px; font-weight: 800; }
+.brand span { color: var(--brand); }
+.site { font-size: 18px; color: var(--muted); }
+.clock { margin-left: auto; text-align: right; }
+#clock-time { font-size: 32px; font-weight: 700; font-variant-numeric: tabular-nums; }
+#clock-date { color: var(--muted); font-size: 14px; }
+.lang { background: transparent; color: var(--muted); border: 1px solid #2b3858; border-radius: 8px; padding: 6px 10px; font-size: 14px; cursor: pointer; }
+.k-footer { position: fixed; bottom: 0; left: 0; right: 0; display: flex; justify-content: space-between;
+            padding: 8px 28px; color: var(--muted); font-size: 12px; }
+.banner { background: var(--warn); color: #241600; text-align: center; padding: 8px; font-weight: 700; }
+
+/* --- Main layout -------------------------------------------------- */
+.k-main { display: grid; grid-template-columns: 1.25fr 1fr; gap: 24px; padding: 0 28px; height: calc(100% - 120px); }
+@media (max-width: 900px), (orientation: portrait) { .k-main { grid-template-columns: 1fr; grid-template-rows: 45% 55%; } }
+
+.camera { position: relative; border-radius: 18px; overflow: hidden; background: #000; }
+.camera video { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
+.frame-guide { position: absolute; inset: 14% 28%; border: 3px dashed rgba(255,255,255,.35); border-radius: 48%; pointer-events: none; }
+.camera-off { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; color: var(--muted); font-size: 20px; background: #0a0f1c; }
+.camera-off .icon { font-size: 64px; }
+
+.panel { background: var(--panel); border-radius: 18px; padding: 32px; display: flex; flex-direction: column; justify-content: center; }
+.view h1 { font-size: 38px; margin: 0 0 10px; }
+.view h2 { font-size: 26px; margin: 0 0 14px; }
+.hint { color: var(--muted); font-size: 20px; }
+.status { min-height: 28px; margin: 18px 0; color: var(--warn); font-size: 18px; }
+.keys { color: var(--muted); font-size: 13px; margin-top: 18px; }
+
+/* --- Buttons ------------------------------------------------------ */
+button.big { border: 0; border-radius: 14px; padding: 20px 24px; font-size: 21px; font-weight: 700; cursor: pointer; color: #fff; background: var(--brand); flex: 1; }
+button.big.ok { background: var(--ok); }
+button.big.danger { background: var(--bad); }
+button.big.secondary { background: #24314f; }
+.confirm-row { display: flex; gap: 14px; margin-top: 20px; }
+
+.greet { font-size: 30px; }
+.greet strong { color: #fff; }
+.state { color: var(--muted); font-size: 18px; margin: 6px 0 16px; }
+.warn { background: rgba(240,166,48,.15); color: var(--warn); padding: 10px 14px; border-radius: 10px; margin-bottom: 12px; }
+.actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 6px; }
+.actions button { border: 2px solid #2b3858; background: #1b2744; color: var(--ink); border-radius: 12px; padding: 16px; font-size: 18px; font-weight: 600; cursor: pointer; text-align: left; }
+.actions button .k { display: inline-block; min-width: 26px; color: var(--muted); }
+.actions button.selected { border-color: var(--brand); background: #20356c; }
+
+.ttl { height: 6px; background: #24314f; border-radius: 3px; margin-top: 18px; overflow: hidden; }
+#ttl-bar { height: 100%; width: 100%; background: var(--brand); transition: width 1s linear; }
+
+/* --- PIN pad ------------------------------------------------------ */
+.pin-input { width: 100%; font-size: 34px; letter-spacing: 8px; text-align: center; padding: 14px; border-radius: 12px;
+             border: 2px solid #2b3858; background: #0f182c; color: #fff; }
+.keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 14px; }
+.keypad button { font-size: 26px; padding: 16px; border-radius: 12px; border: 0; background: #24314f; color: #fff; cursor: pointer; }
+.error { color: var(--bad); min-height: 24px; margin-top: 12px; font-size: 17px; }
+
+/* --- Result ------------------------------------------------------- */
+#view-result { text-align: center; }
+.result-icon { font-size: 96px; color: var(--ok); }
+.result-icon.bad { color: var(--bad); }
+.result-title { font-size: 32px; font-weight: 700; margin-top: 10px; }
+.result-detail { font-size: 20px; color: var(--muted); margin-top: 8px; }

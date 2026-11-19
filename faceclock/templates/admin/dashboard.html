@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<h1>Live dashboard</h1>
+{% if not biometrics %}
+<div class="flash error">Face recognition is not available (models missing or disabled). Kiosks run in PIN mode.</div>
+{% endif %}
+
+<div class="grid cols-4">
+  <div class="card stat"><div class="value">{{ stats.present }}</div><div class="label">Working now</div></div>
+  <div class="card stat"><div class="value">{{ stats.on_break }}</div><div class="label">On break</div></div>
+  <a class="card stat" href="{{ url_for('admin.review') }}"><div class="value">{{ stats.pending_punches }}</div><div class="label">Punches to review</div></a>
+  <a class="card stat" href="{{ url_for('admin.review') }}"><div class="value">{{ stats.pending_corrections }}</div><div class="label">Correction requests</div></a>
+</div>
+
+<div class="grid cols-2 mt">
+  <div class="card">
+    <h2>Presence by building</h2>
+    {% for site, people in by_site.items() %}
+      <h3 style="font-size:14px;margin:14px 0 6px">{{ site }} <span class="badge info">{{ people|length }}</span></h3>
+      <table>
+        {% for p in people %}
+        <tr>
+          <td>{{ p.last_name }} {{ p.first_name }}</td>
+          <td class="muted">{{ p.department or '—' }}</td>
+          <td>{% if p.on_break %}<span class="badge warn">{{ p.break_label }}</span>{% else %}<span class="badge ok">Working</span>{% endif %}</td>
+        </tr>
+        {% endfor %}
+      </table>
+    {% else %}
+      <p class="muted">Nobody is clocked in right now.</p>
+    {% endfor %}
+  </div>
+
+  <div>
+    <div class="card">
+      <h2>Kiosks</h2>
+      <table>
+        <tr><th>Kiosk</th><th>Building</th><th>Status</th><th>Camera</th></tr>
+        {% for k in kiosks %}
+        <tr>
+          <td>{{ k.name }}</td><td>{{ k.site }}</td>
+          <td>{% if k.online %}<span class="badge ok">Online</span>{% else %}<span class="badge bad">Offline</span>{% endif %}</td>
+          <td>{% if k.camera_ok is none %}<span class="badge">?</span>{% elif k.camera_ok %}<span class="badge ok">OK</span>{% else %}<span class="badge bad">Failure</span>{% endif %}</td>
+        </tr>
+        {% else %}<tr><td colspan="4" class="muted">No kiosk registered.</td></tr>{% endfor %}
+      </table>
+    </div>
+    <div class="card mt">
+      <h2>Latest IT incidents</h2>
+      <table>
+        {% for i in incidents %}
+        <tr><td class="muted">{{ i.ts }}</td><td>{{ i.kiosk or '—' }}</td><td><span class="badge warn">{{ i.kind }}</span></td></tr>
+        {% else %}<tr><td class="muted">No incident.</td></tr>{% endfor %}
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

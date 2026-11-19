@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+{% block title %}Organization{% endblock %}
+{% macro csrf() %}<input type="hidden" name="_csrf" value="{{ csrf_token() }}">{% endmacro %}
+{% block content %}
+<h1>Organization</h1>
+
+{% if new_token %}
+<div class="card" style="border-color:var(--ok)">
+  <h2>New kiosk token — copy it now, it will not be shown again</h2>
+  <div class="token">{{ request.host_url }}kiosk?token={{ new_token }}</div>
+</div>
+{% endif %}
+
+<div class="grid cols-2 mt">
+  <!-- ===== Buildings ===== -->
+  <div class="card">
+    <h2>Buildings / sites</h2>
+    <table>
+      <tr><th>Name</th><th>Address</th><th>Timezone</th></tr>
+      {% for s in sites %}<tr><td>{{ s.name }}</td><td class="muted">{{ s.address or '' }}</td><td>{{ s.timezone }}</td></tr>{% endfor %}
+    </table>
+    <form method="post" class="inline mt">{{ csrf() }}<input type="hidden" name="kind" value="site">
+      <div><label>Name</label><input name="name" required></div>
+      <div><label>Address</label><input name="address"></div>
+      <div><label>Timezone</label><input name="timezone" value="Europe/Paris"></div>
+      <div class="shrink"><button class="btn">Add</button></div>
+    </form>
+  </div>
+
+  <!-- ===== Directions / departments ===== -->
+  <div class="card">
+    <h2>Directions & departments</h2>
+    <table>
+      <tr><th>Code</th><th>Name</th><th>Parent</th></tr>
+      {% for d in departments %}<tr><td>{{ d.code }}</td><td>{{ d.name }}</td><td class="muted">{{ d.parent or '—' }}</td></tr>{% endfor %}
+    </table>
+    <form method="post" class="inline mt">{{ csrf() }}<input type="hidden" name="kind" value="department">
+      <div><label>Code</label><input name="code" required></div>
+      <div><label>Name</label><input name="name" required></div>
+      <div><label>Parent</label><select name="parent_id"><option value="">— (top level)</option>
+        {% for d in departments %}<option value="{{ d.id }}">{{ d.code }}</option>{% endfor %}</select></div>
+      <div class="shrink"><button class="btn">Add</button></div>
+    </form>
+  </div>
+
+  <!-- ===== Schedules ===== -->
+  <div class="card">
+    <h2>Work schedules</h2>
+    <table>
+      <tr><th>Name</th><th>Hours</th><th>Days</th><th class="num">Grace</th><th class="num">Expected</th></tr>
+      {% for s in schedules %}<tr><td>{{ s.name }}</td><td>{{ s.start_time }}–{{ s.end_time }}</td><td>{{ s.workdays }}</td>
+        <td class="num">{{ s.grace_minutes }} min</td><td class="num">{{ fmt_minutes(s.expected_minutes) }}</td></tr>{% endfor %}
+    </table>
+    <form method="post" class="inline mt">{{ csrf() }}<input type="hidden" name="kind" value="schedule">
+      <div><label>Name</label><input name="name" required></div>
+      <div><label>Start</label><input name="start_time" type="time" required></div>
+      <div><label>End</label><input name="end_time" type="time" required></div>
+      <div><label>Days (1=Mon)</label><input name="workdays" value="1,2,3,4,5"></div>
+      <div><label>Grace (min)</label><input name="grace_minutes" type="number" value="5"></div>
+      <div><label>Expected (min)</label><input name="expected_minutes" type="number" value="420"></div>
+      <div class="shrink"><button class="btn">Add</button></div>
+    </form>
+  </div>
+
+  <!-- ===== Break policy ===== -->
+  <div class="card">
+    <h2>Break policy</h2>
+    <p class="muted">A <strong>paid</strong> break (e.g. smoking, coffee) stays working time up to its daily allowance.</p>
+    <table>
+      <tr><th>Code</th><th>Label</th><th>Paid</th><th class="num">Allowance/day</th><th class="num">Max per break</th></tr>
+      {% for b in break_types %}<tr><td>{{ b.code }}</td><td>{{ b.label }}</td>
+        <td>{% if b.paid %}<span class="badge ok">Paid</span>{% else %}<span class="badge">Unpaid</span>{% endif %}</td>
+        <td class="num">{{ b.daily_allowance_minutes or '∞' }} min</td><td class="num">{{ b.max_duration_minutes or '—' }} min</td></tr>{% endfor %}
+    </table>
+    <form method="post" class="inline mt">{{ csrf() }}<input type="hidden" name="kind" value="break_type">
+      <div><label>Code</label><input name="code" required></div>
+      <div><label>Label</label><input name="label" required></div>
+      <div><label>Allowance (min)</label><input name="daily_allowance_minutes" type="number" value="0"></div>
+      <div><label>Max (min)</label><input name="max_duration_minutes" type="number" value="0"></div>
+      <div class="shrink"><label><input type="checkbox" name="paid" value="1" checked> Paid</label></div>
+      <div class="shrink"><button class="btn">Save</button></div>
+    </form>
+  </div>
+
+  <!-- ===== Kiosks ===== -->
+  <div class="card">
+    <h2>Kiosks (punch terminals)</h2>
+    <table>
+      <tr><th>Name</th><th>Building</th><th>Last seen</th><th></th></tr>
+      {% for k in kiosks %}<tr><td>{{ k.name }}</td><td>{{ k.site }}</td><td class="muted">{{ k.last_seen or 'never' }}</td>
+        <td>{% if k.active %}
+          <form method="post">{{ csrf() }}<input type="hidden" name="kind" value="kiosk_disable"><input type="hidden" name="kiosk_id" value="{{ k.id }}">
+            <button class="btn small danger">Disable</button></form>
+          {% else %}<span class="badge bad">Disabled</span>{% endif %}</td></tr>{% endfor %}
+    </table>
+    <form method="post" class="inline mt">{{ csrf() }}<input type="hidden" name="kind" value="kiosk">
+      <div><label>Name</label><input name="name" required></div>
+      <div><label>Building</label><select name="site_id">{% for s in sites %}<option value="{{ s.id }}">{{ s.name }}</option>{% endfor %}</select></div>
+      <div class="shrink"><button class="btn">Register</button></div>
+    </form>
+  </div>
+
+  <!-- ===== Back-office users ===== -->
+  <div class="card">
+    <h2>Back-office users</h2>
+    <table>
+      <tr><th>Username</th><th>Role</th><th>Scope</th></tr>
+      {% for u in users %}<tr><td>{{ u.username }}</td><td><span class="badge info">{{ u.role }}</span></td><td class="muted">{{ u.department or 'All' }}</td></tr>{% endfor %}
+    </table>
+    <form method="post" class="inline mt">{{ csrf() }}<input type="hidden" name="kind" value="user">
+      <div><label>Username</label><input name="username" required></div>
+      <div><label>Password</label><input name="password" type="password" required minlength="8"></div>
+      <div><label>Role</label><select name="role"><option>MANAGER</option><option>HR</option><option>ADMIN</option></select></div>
+      <div><label>Department (managers)</label><select name="department_id"><option value="">—</option>
+        {% for d in departments %}<option value="{{ d.id }}">{{ d.code }}</option>{% endfor %}</select></div>
+      <div class="shrink"><button class="btn">Add</button></div>
+    </form>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+  <title>FaceClock kiosk</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='kiosk.css') }}">
+</head>
+<body>
+<!-- =================================================================
+     Kiosk layout: camera on the left, interaction panel on the right
+     ================================================================= -->
+<div id="offline-banner" class="banner hidden" data-i18n="offline"></div>
+
+<header class="k-header">
+  <div class="brand">Face<span>Clock</span></div>
+  <div id="site-name" class="site"></div>
+  <div class="clock"><div id="clock-time"></div><div id="clock-date"></div></div>
+  <button id="lang-btn" class="lang">FR</button>
+</header>
+
+<div class="k-main">
+  <section class="camera">
+    <video id="video" autoplay playsinline muted></video>
+    <div class="frame-guide"></div>
+    <div id="camera-off" class="camera-off hidden">
+      <div class="icon">📷</div>
+      <div data-i18n="cameraOff"></div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <!-- Idle -->
+    <div id="view-idle" class="view">
+      <h1 data-i18n="welcome"></h1>
+      <p class="hint" data-i18n="lookCamera"></p>
+      <div id="idle-status" class="status"></div>
+      <button class="big secondary" id="btn-pin" data-i18n="usePin"></button>
+      <p class="keys" data-i18n="keysIdle"></p>
+    </div>
+
+    <!-- Recognised: confirm or correct -->
+    <div id="view-confirm" class="view hidden">
+      <div class="greet"><span data-i18n="hello"></span> <strong id="emp-name"></strong></div>
+      <div id="emp-state" class="state"></div>
+      <div id="forgot-warning" class="warn hidden" data-i18n="forgotten"></div>
+      <div id="actions" class="actions"></div>
+      <div id="break-types" class="actions hidden"></div>
+      <div class="confirm-row">
+        <button class="big ok" id="btn-confirm"></button>
+        <button class="big danger" id="btn-notme" data-i18n="notMe"></button>
+      </div>
+      <div class="ttl"><div id="ttl-bar"></div></div>
+      <p class="keys" data-i18n="keysConfirm"></p>
+    </div>
+
+    <!-- Manual identification: code + secret PIN -->
+    <div id="view-pin" class="view hidden">
+      <h2 id="pin-title" data-i18n="enterCode"></h2>
+      <input id="pin-input" class="pin-input" autocomplete="off" inputmode="numeric">
+      <div class="keypad" id="keypad"></div>
+      <div class="confirm-row">
+        <button class="big secondary" id="btn-pin-cancel" data-i18n="cancel"></button>
+        <button class="big ok" id="btn-pin-next" data-i18n="next"></button>
+      </div>
+      <div id="pin-error" class="error"></div>
+    </div>
+
+    <!-- Result -->
+    <div id="view-result" class="view hidden">
+      <div id="result-icon" class="result-icon">✔</div>
+      <div id="result-title" class="result-title"></div>
+      <div id="result-detail" class="result-detail"></div>
+    </div>
+  </section>
+</div>
+
+<footer class="k-footer">
+  <span id="queue-info"></span>
+  <span id="kiosk-name"></span>
+</footer>
+
+<script src="{{ url_for('static', filename='kiosk.js') }}"></script>
+</body>
+</html>

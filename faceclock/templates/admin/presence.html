@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}On site{% endblock %}
+{% block content %}
+<h1>Who is on site — evacuation roll-call</h1>
+<form class="inline no-print" method="get">
+  <div>
+    <label>Building</label>
+    <select name="site_id">
+      <option value="">All buildings</option>
+      {% for s in sites %}<option value="{{ s.id }}" {{ 'selected' if site_id == s.id }}>{{ s.name }}</option>{% endfor %}
+    </select>
+  </div>
+  <div class="shrink"><button class="btn">Filter</button></div>
+  <div class="shrink"><button type="button" class="btn secondary" onclick="window.print()">Print list</button></div>
+</form>
+
+<div class="card mt">
+  <p class="muted">Generated {{ generated }} (UTC) — {{ rows|length }} person(s).</p>
+  <table>
+    <tr><th>✓</th><th>Name</th><th>Code</th><th>Department</th><th>Building</th><th>Status</th><th>Since (UTC)</th></tr>
+    {% for r in rows %}
+    <tr>
+      <td><input type="checkbox" aria-label="Accounted for"></td>
+      <td><strong>{{ r.last_name }}</strong> {{ r.first_name }}</td>
+      <td>{{ r.employee_code }}</td>
+      <td>{{ r.department or '—' }}</td>
+      <td>{{ r.site or '—' }}</td>
+      <td>{% if r.on_break %}<span class="badge warn">{{ r.break_label }}</span>{% else %}<span class="badge ok">Working</span>{% endif %}</td>
+      <td class="muted">{{ r.ts }}</td>
+    </tr>
+    {% else %}<tr><td colspan="7" class="muted">Nobody on site.</td></tr>{% endfor %}
+  </table>
+</div>
+{% endblock %}
