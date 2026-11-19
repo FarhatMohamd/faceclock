@@ -220,7 +220,7 @@ def control_window(base_url: str, data_dir: Path, on_quit):
         b.pack(pady=4, fill="x")
         return b
 
-    button("Punch terminal (camera)", lambda: open_window(f"{base_url}/desktop/kiosk"), primary=True)
+    button("Punch terminal (camera)", lambda: open_window(f"{base_url}/terminal"), primary=True)
     button("Back-office (administration)", lambda: open_window(f"{base_url}/desktop/home"))
     button("Employee portal", lambda: open_window(f"{base_url}/me/"))
     button("Open data folder", lambda: open_folder(data_dir))

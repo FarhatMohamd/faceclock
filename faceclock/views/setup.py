@@ -5,19 +5,17 @@ First-run setup and desktop helpers
 * /setup         - shown only while no back-office user exists: creates the
                    first building and the administrator account, then logs in.
                    Replaces the command line for non-technical users.
-* /desktop/kiosk - desktop edition only: opens the punch terminal of this PC
-                   (its kiosk is created automatically the first time).
+* /terminal      - "Start" button: opens the punch terminal of a building on
+                   this screen; the kiosk is registered automatically the
+                   first time and reused afterwards.
 """
-
-import json
-from pathlib import Path
 
 from flask import (Blueprint, abort, current_app, flash, redirect, render_template, request,
                    session, url_for)
 
-from ..cli import create_kiosk, ensure_defaults
+from ..cli import ensure_defaults
 from ..db import execute, query
-from ..security import hash_password, hash_token
+from ..security import hash_password
 from ..services.audit import audit
 
 bp = Blueprint("setup", __name__)
@@ -67,39 +65,64 @@ def first_run():
 
 
 # ---------------------------------------------------------------------------
-# Desktop edition: kiosk of this computer
+# "Start": open the punch terminal on this screen, no token to copy
 # ---------------------------------------------------------------------------
-def _state_file():
-    path = current_app.config.get("DESKTOP_STATE_FILE")
-    return Path(path) if path else None
+def _is_local_desktop():
+    return bool(current_app.config.get("DESKTOP_MODE")) and request.remote_addr in ("127.0.0.1", "::1")
 
 
 def _local_only():
-    if not current_app.config.get("DESKTOP_MODE") or request.remote_addr not in ("127.0.0.1", "::1"):
+    if not _is_local_desktop():
         abort(404)
+
+
+@bp.get("/terminal")
+def start_terminal():
+    """Turn this screen into the punch terminal of a building.
+
+    Desktop edition: allowed directly from this computer. Browser: requires a
+    back-office login (ADMIN, HR or MANAGER), the terminal is then remembered
+    by this browser.
+    """
+    from ..security import current_user
+    from ..services import terminals
+
+    desktop = _is_local_desktop()
+    if setup_needed():
+        return redirect(url_for("setup.first_run"))
+    if not desktop and current_user() is None:
+        return redirect(url_for("admin.login", next=url_for("setup.start_terminal")))
+
+    sites = terminals.active_sites()
+    if not sites:
+        flash("Create a building first (Organization).", "error")
+        return redirect(url_for("admin.organization"))
+    store = terminals.read_desktop_store() if desktop else terminals.read_cookie_store(request)
+    site = None
+    if request.args.get("site_id", "").isdigit():
+        site = next((s for s in sites if s["id"] == int(request.args["site_id"])), None)
+    elif len(sites) == 1:
+        site = sites[0]
+    elif not request.args.get("choose") and len(store) == 1:
+        # this device already runs the terminal of one building: open it directly
+        site = next((s for s in sites if str(s["id"]) in store), None)
+    if site is None:
+        return render_template("terminal_choose.html", sites=sites)
+
+    token = terminals.token_for_site(site["id"], store, terminals.default_name(site["name"], desktop))
+    response = redirect(url_for("kiosk.kiosk_page", token=token))
+    if desktop:
+        terminals.write_desktop_store(store)
+    else:
+        terminals.write_cookie_store(response, store)
+    return response
 
 
 @bp.get("/desktop/kiosk")
 def desktop_kiosk():
+    """Kept for the control window of version 1.1."""
     _local_only()
-    if setup_needed():
-        return redirect(url_for("setup.first_run"))
-    state_file = _state_file()
-    state = {}
-    if state_file and state_file.exists():
-        state = json.loads(state_file.read_text(encoding="utf-8"))
-    token = state.get("kiosk_token")
-    valid = token and query("SELECT id FROM kiosks WHERE token_hash = ? AND active = 1",
-                            (hash_token(token),), one=True)
-    if not valid:
-        site = query("SELECT id FROM sites WHERE active = 1 ORDER BY id LIMIT 1", one=True)
-        if site is None:
-            return redirect(url_for("setup.first_run"))
-        _, token = create_kiosk("This computer", site["id"])
-        state["kiosk_token"] = token
-        if state_file:
-            state_file.write_text(json.dumps(state), encoding="utf-8")
-    return redirect(url_for("kiosk.kiosk_page", token=token))
+    return redirect(url_for("setup.start_terminal"))
 
 
 @bp.get("/desktop/home")

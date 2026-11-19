@@ -13,7 +13,7 @@ from .config import Config
 from .face import FaceGallery, create_engine
 from .security import check_csrf, csrf_token, current_user
 
-__version__ = "1.1.0"
+__version__ = "1.2.0"
 
 
 def create_app(config_object=Config, **overrides):

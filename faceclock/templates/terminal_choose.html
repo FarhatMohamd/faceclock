@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Start the punch terminal{% endblock %}
+{% block content %}
+<h1>Which building is this terminal in?</h1>
+<p class="muted">The choice is remembered on this device: next time, “Start” opens the terminal directly.</p>
+<div class="grid cols-3 mt">
+  {% for s in sites %}
+  <a class="card" href="{{ url_for('setup.start_terminal', site_id=s.id) }}" style="text-decoration:none">
+    <h2 style="margin-bottom:4px">{{ s.name }}</h2>
+    <div class="muted">{{ s.address or s.timezone }}</div>
+    <div class="btn mt">▶ Start here</div>
+  </a>
+  {% endfor %}
+</div>
+{% endblock %}

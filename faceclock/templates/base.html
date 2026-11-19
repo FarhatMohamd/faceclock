@@ -22,6 +22,7 @@
     {% if user.role in ('ADMIN', 'HR') %}<a href="{{ url_for('admin.audit_view') }}" class="{{ 'active' if ep == 'admin.audit_view' }}">Audit</a>{% endif %}
     {% if user.role == 'ADMIN' %}<a href="{{ url_for('admin.organization') }}" class="{{ 'active' if ep == 'admin.organization' }}">Organization</a>{% endif %}
   </nav>
+  <a class="btn start-btn" href="{{ url_for('setup.start_terminal') }}" title="Open the camera punch terminal on this screen">▶ Start terminal</a>
   <div class="user">{{ user.username }} · {{ user.role }} <a href="{{ url_for('admin.logout') }}">Log out</a></div>
   {% endif %}
 </header>

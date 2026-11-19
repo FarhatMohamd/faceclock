@@ -80,8 +80,9 @@ anybody when the technology fails.
 1. Download **`FaceClock-Setup-x.y.z.exe`** from the [latest release](https://github.com/FarhatMohamd/faceclock/releases/latest).
 2. Run it (no administrator rights needed). Windows SmartScreen may warn about an unsigned program: click **More info → Run anyway**.
 3. Start **FaceClock** from the desktop icon. On the first start a wizard asks for your building name and creates your administrator account.
-4. The FaceClock window then gives one-click access to:
-   * **Punch terminal (camera)**: the kiosk of this computer, created automatically; allow the camera once.
+4. Click **▶ Start terminal** (top bar of the back-office, or in the FaceClock window): the camera starts and employees are recognised. Nothing to copy: the terminal is registered automatically and remembered on this computer. With several buildings, FaceClock asks once which one. The ⚙ button on the terminal goes back to the back-office.
+5. The FaceClock window also gives one-click access to:
+   * **Punch terminal (camera)**: same as Start terminal; allow the camera once.
    * **Back-office**: employees, face enrolment, timesheets, review queue.
    * **Employee portal** and the **data folder** (`%APPDATA%\FaceClock`: database, settings, log).
 

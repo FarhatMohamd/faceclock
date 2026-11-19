@@ -30,6 +30,8 @@ a:hover { text-decoration: underline; }
 .topbar .logo span { color: #7aa2ff; }
 .topbar nav a { color: #c8d1e4; margin-right: 18px; font-weight: 500; }
 .topbar nav a.active, .topbar nav a:hover { color: #fff; text-decoration: none; }
+.topbar .start-btn { margin-left: auto; background: #12805c; padding: 8px 16px; }
+.topbar .start-btn + .user { margin-left: 16px; }
 .topbar .user { margin-left: auto; color: #9aa6bf; font-size: 13px; }
 .topbar .user a { color: #fff; margin-left: 10px; }
 
@@ -107,3 +109,7 @@ input[type=checkbox] { width: auto; }
   main { padding: 0; }
   .card { border: 0; }
 }
+
+/* --- "Start terminal" call to action on the dashboard ------------- */
+.start-card { display: flex; align-items: center; gap: 18px; border-color: #12805c; }
+.start-card .btn { background: #12805c; font-size: 16px; padding: 12px 22px; }

@@ -6,6 +6,13 @@
 <div class="flash error">Face recognition is not available (models missing or disabled). Kiosks run in PIN mode.</div>
 {% endif %}
 
+<div class="card start-card" style="margin-bottom:16px">
+  <a class="btn" href="{{ url_for('setup.start_terminal') }}">▶ Start terminal</a>
+  <div><strong>Turn this screen into the punch terminal.</strong>
+    <span class="muted">The camera starts and employees are recognised automatically. Nothing to copy: the terminal is remembered on this device.</span>
+    <a href="{{ url_for('setup.start_terminal', choose=1) }}" style="margin-left:6px">Change building</a></div>
+</div>
+
 <div class="grid cols-4">
   <div class="card stat"><div class="value">{{ stats.present }}</div><div class="label">Working now</div></div>
   <div class="card stat"><div class="value">{{ stats.on_break }}</div><div class="label">On break</div></div>
