@@ -5,7 +5,7 @@
 ### Smart face-recognition time & attendance for multi-site companies
 
 Look at the camera, press **Enter**, you're clocked in.<br>
-Several buildings, several directions, paid smoking breaks, camera failures, server outages: all handled.
+Several buildings, several directions, breaks, camera failures, server outages: all handled.
 
 ![Python](https://img.shields.io/badge/python-3.10%2B-3776AB?logo=python&logoColor=white)
 ![Flask](https://img.shields.io/badge/flask-3.x-000000?logo=flask)
