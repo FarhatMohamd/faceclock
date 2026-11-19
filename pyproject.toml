@@ -1,0 +1,13 @@
+[project]
+name = "faceclock"
+version = "1.0.0"
+description = "Face-recognition time & attendance for multi-site companies"
+readme = "README.md"
+license = { text = "MIT" }
+authors = [{ name = "FARHAT Mohamad" }]
+requires-python = ">=3.10"
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
+addopts = "-q"
